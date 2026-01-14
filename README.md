@@ -33,7 +33,7 @@ Add to your Claude Desktop configuration file:
   "mcpServers": {
     "podcastindex": {
       "command": "npx",
-      "args": ["-y", "@podcastindex/mcp-server"],
+      "args": ["-y", "github:cclawton/podcastindex-mcp-server"],
       "env": {
         "PODCASTINDEX_API_KEY": "your-api-key-here",
         "PODCASTINDEX_API_SECRET": "your-api-secret-here"
@@ -42,6 +42,8 @@ Add to your Claude Desktop configuration file:
   }
 }
 ```
+
+This installs directly from GitHub - no npm registry needed.
 
 Restart Claude Desktop after adding the configuration.
 
