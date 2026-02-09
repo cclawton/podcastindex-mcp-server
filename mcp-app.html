@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PodcastIndex Explorer</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #1a1a2e;
+      --panel: #16213e;
+      --accent: #0f3460;
+      --highlight: #e94560;
+      --text: #eee;
+      --muted: #999;
+      --border: #2a2a4a;
+      --radius: 6px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    /* ── Layout ──────────────────────────────────────────── */
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────────── */
+
+    .header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 16px;
+      flex-shrink: 0;
+    }
+
+    .header p {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Tabs ────────────────────────────────────────────── */
+
+    .tab-bar {
+      display: flex;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .tab-bar button {
+      padding: 8px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--font);
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-bar button:hover {
+      color: var(--text);
+    }
+
+    .tab-bar button.active {
+      color: var(--highlight);
+      border-bottom-color: var(--highlight);
+    }
+
+    /* ── Filter + Result Count ───────────────────────────── */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .toolbar input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 12px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .toolbar input[type="text"]:focus {
+      border-color: var(--highlight);
+    }
+
+    .toolbar input[type="text"]::placeholder {
+      color: var(--muted);
+    }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+
+    .table-wrapper {
+      flex: 1;
+      overflow: auto;
+      padding: 0 16px 8px;
+    }
+
+    .table-container {
+      display: none;
+    }
+
+    .table-container.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    th {
+      background: var(--accent);
+      color: var(--text);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    th:hover {
+      background: #133d6b;
+    }
+
+    th .sort-arrow {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    th .sort-arrow.asc::after {
+      content: "\25B2";
+      color: var(--highlight);
+    }
+
+    th .sort-arrow.desc::after {
+      content: "\25BC";
+      color: var(--highlight);
+    }
+
+    td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background: rgba(15, 52, 96, 0.3);
+    }
+
+    td.clickable {
+      color: var(--highlight);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    td.clickable:hover {
+      text-decoration: underline;
+    }
+
+    td img.thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      display: block;
+      background: var(--accent);
+    }
+
+    td.muted {
+      color: var(--muted);
+    }
+
+    td.number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Pagination ──────────────────────────────────────── */
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 16px;
+      flex-shrink: 0;
+    }
+
+    .pagination button {
+      padding: 5px 14px;
+      background: var(--accent);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #1a4a7a;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .pagination .page-info {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* ── Loading Overlay ─────────────────────────────────── */
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 26, 46, 0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-overlay.visible {
+      display: flex;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--highlight);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Error Banner ────────────────────────────────────── */
+
+    .error-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: #3d1525;
+      border-bottom: 1px solid #5a2035;
+      color: #f8a0b0;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .error-banner.visible {
+      display: flex;
+    }
+
+    .error-banner .error-text {
+      flex: 1;
+    }
+
+    .error-banner .dismiss-btn {
+      background: none;
+      border: none;
+      color: #f8a0b0;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    .error-banner .dismiss-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Action Links ─────────────────────────────────────── */
+
+    .action-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: color 0.15s;
+      text-decoration: none;
+    }
+
+    .action-link:hover {
+      color: var(--highlight);
+    }
+
+    .action-link svg {
+      display: block;
+    }
+
+    td a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    td a:hover {
+      color: var(--highlight);
+      text-decoration: underline;
+    }
+
+    /* ── Empty State ──────────────────────────────────────── */
+
+    .empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <div class="header">
+      <p>results from podcastindex.org</p>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="error-banner">
+      <span class="error-text" id="error-text"></span>
+      <button class="dismiss-btn" id="error-dismiss">&times;</button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="active" data-tab="search">Podcasts</button>
+      <button data-tab="episodes">Episodes</button>
+    </div>
+
+    <!-- Podcasts Tab -->
+    <div id="tab-search" class="table-container active">
+      <div class="toolbar">
+        <input id="filter-search" type="text" placeholder="Filter results..." />
+        <span id="count-search" class="result-count"></span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead id="thead-search"></thead>
+          <tbody id="tbody-search"></tbody>
+        </table>
+      </div>
+      <div id="empty-search" class="empty-state">Waiting for results...</div>
+      <div class="pagination" id="pag-search">
+        <button id="prev-search">Prev</button>
+        <span class="page-info" id="pageinfo-search"></span>
+        <button id="next-search">Next</button>
+      </div>
+    </div>
+
+    <!-- Episodes Tab -->
+    <div id="tab-episodes" class="table-container">
+      <div class="toolbar">
+        <input id="filter-episodes" type="text" placeholder="Filter results..." />
+        <span id="count-episodes" class="result-count"></span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead id="thead-episodes"></thead>
+          <tbody id="tbody-episodes"></tbody>
+        </table>
+      </div>
+      <div id="empty-episodes" class="empty-state">Click a podcast title to view its episodes.</div>
+      <div class="pagination" id="pag-episodes">
+        <button id="prev-episodes">Prev</button>
+        <span class="page-info" id="pageinfo-episodes"></span>
+        <button id="next-episodes">Next</button>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/mcp-app.ts"></script>
+</body>
+</html>

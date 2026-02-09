@@ -205,7 +205,7 @@ export async function searchMusic(params: Record<string, unknown>) {
 export const searchTools = [
   {
     name: 'podcast_search_byterm',
-    description: 'Search for podcasts by term. Searches across title, author, owner, and description fields.',
+    description: 'Search for podcasts by keyword or topic. Searches podcast title, author, and description fields. NOT for finding a specific person — use podcast_search_byperson instead when the query is a person\'s name.',
     inputSchema: searchByTermSchema,
     handler: searchByTerm,
   },
@@ -217,7 +217,7 @@ export const searchTools = [
   },
   {
     name: 'podcast_search_byperson',
-    description: 'Search for podcast episodes featuring a specific person (host, guest, etc.).',
+    description: 'Find podcast episodes featuring a specific person by name. Use this whenever the query is a person\'s name (e.g. "David Deutsch", "Lex Fridman"). Returns episodes where that person appears as host, guest, or contributor.',
     inputSchema: searchByPersonSchema,
     handler: searchByPerson,
   },
