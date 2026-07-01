@@ -1,32 +1,6 @@
 # PodcastIndex MCP Server
 
-A Model Context Protocol (MCP) server for the [PodcastIndex.org](https://podcastindex.org) API. Search podcasts, discover trending shows, find episodes, explore Value4Value monetization, and more.
-
----
-
-## 🚧 Dev Branch: MCP Apps Support
-
-This branch extends the PodcastIndex MCP server to support **MCP Apps** — the new feature in the MCP ecosystem.
-
-### Vision
-
-Explore how podcast discovery and interaction could be delivered as a full MCP App experience rather than just a tool/server integration. This project aims to be an early mover on MCP Apps and demonstrate the pattern for others building in the ecosystem.
-
-### Goals
-
-- Build on the existing Podcast Index MCP server codebase
-- Implement MCP Apps support for rich podcast discovery UX
-- Enable interactive podcast browsing, search, and playback control as an app experience
-- Serve as a reference implementation for the MCP Apps pattern
-
-### Dev Tooling
-
-This branch is built and managed using:
-
-- [claude-flow](https://github.com/ruvnet/claude-flow) — Multi-agent orchestration framework
-- [beads](https://github.com/steveyegge/beads) — Issue tracking and project management
-
----
+An MCP server for the PodcastIndex API. Gives AI agents native access to podcast search, discovery, episode lookup, trending feeds, and Value4Value monetisation data — so agents can research, cite, and reason about podcasts the same way they access any other tool. Built to work with Claude, Claude Code, and any MCP-aware agent.
 
 ## Features
 
@@ -207,6 +181,13 @@ npm run clean
 
 - Node.js 18.0.0 or higher
 - npm 9.0.0 or higher
+
+## Part of a connected stack
+
+- [supervisor](https://github.com/cclawton/supervisor) — agentic systems architecture
+- [bullpen](https://github.com/cclawton/bullpen) — content pipeline (podcast research use case)
+- [hexapla](https://github.com/cclawton/hexapla) — AI evaluation
+- [github.com/cclawton](https://github.com/cclawton) — profile
 
 ## License
 
